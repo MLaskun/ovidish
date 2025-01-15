@@ -8,11 +8,11 @@ import (
 )
 
 type ProductHandler struct {
-	Repo ProductRepository
+	svc *ProductService
 }
 
-func NewProductHandler(repo ProductRepository) *ProductHandler {
-	return &ProductHandler{Repo: repo}
+func NewProductHandler(svc *ProductService) *ProductHandler {
+	return &ProductHandler{svc: svc}
 }
 
 func (h ProductHandler) createProductHandler(w http.ResponseWriter,
@@ -39,7 +39,7 @@ func (h ProductHandler) createProductHandler(w http.ResponseWriter,
 		Price:       input.Price,
 	}
 
-	err = h.Repo.Insert(product)
+	err = h.svc.Create(product)
 	if err != nil {
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return

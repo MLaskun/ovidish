@@ -6,7 +6,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-func (handler *ProductHandler) routes() http.Handler {
+func routes(handler *ProductHandler) http.Handler {
 	router := httprouter.New()
 
 	router.HandlerFunc(http.MethodPost, "/v1/product",
