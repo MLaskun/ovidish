@@ -27,7 +27,7 @@ func (h ProductHandler) createProductHandler(w http.ResponseWriter,
 
 	err := helpers.ReadJSON(w, r, &input)
 	if err != nil {
-		http.Error(w, "bad request", http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -41,7 +41,7 @@ func (h ProductHandler) createProductHandler(w http.ResponseWriter,
 
 	err = h.svc.Create(product)
 	if err != nil {
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }

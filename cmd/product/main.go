@@ -19,6 +19,9 @@ func main() {
 func makeConfig() (*config.Config, error) {
 	cfg := &config.Config{
 		Address: ":3000",
+		Database: config.Database{
+			Dsn: "postgres://postgres:postgres@localhost:5432/ovidish?sslmode=disable",
+		},
 	}
 
 	return cfg, nil

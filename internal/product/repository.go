@@ -6,6 +6,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/MLaskun/ovidish/internal/product/config"
 	"github.com/MLaskun/ovidish/internal/product/model"
 	"github.com/lib/pq"
 )
@@ -19,11 +20,11 @@ type ProductRepository struct {
 	DB *sql.DB
 }
 
-func NewProductRepository() ProductRepository {
-	return ProductRepository{}
+func NewProductRepository(cfg *config.Config, db *sql.DB) *ProductRepository {
+	return &ProductRepository{DB: db}
 }
 
-func (pr ProductRepository) Insert(product *model.Product) error {
+func (pr *ProductRepository) Insert(product *model.Product) error {
 	query := `
         INSERT INTO products (name, description, categories, quantity, price)
         VALUES ($1, $2, $3, $4, $5)
@@ -39,7 +40,7 @@ func (pr ProductRepository) Insert(product *model.Product) error {
 		Scan(&product.ID, &product.Version)
 }
 
-func (pr ProductRepository) Get(id int64) (*model.Product, error) {
+func (pr *ProductRepository) Get(id int64) (*model.Product, error) {
 	if id < 1 {
 		return nil, ErrNoRecordFound
 	}
@@ -76,7 +77,7 @@ func (pr ProductRepository) Get(id int64) (*model.Product, error) {
 	return &product, nil
 }
 
-func (pr ProductRepository) Update(product *model.Product) error {
+func (pr *ProductRepository) Update(product *model.Product) error {
 	query := `
         UPDATE products
         SET name = $1, description = $2, categories = $3,
@@ -110,7 +111,7 @@ func (pr ProductRepository) Update(product *model.Product) error {
 	return nil
 }
 
-func (pr ProductRepository) Delete(id int64) error {
+func (pr *ProductRepository) Delete(id int64) error {
 	if id < 1 {
 		return ErrNoRecordFound
 	}
@@ -139,7 +140,7 @@ func (pr ProductRepository) Delete(id int64) error {
 	return nil
 }
 
-func (pr ProductRepository) GetAll(name string,
+func (pr *ProductRepository) GetAll(name string,
 	categories []string) ([]*model.Product, error) {
 	query := `
         SELECT id, name, description, categories, quantity, price, version
