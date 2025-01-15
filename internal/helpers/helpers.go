@@ -9,6 +9,13 @@ import (
 	"strings"
 )
 
+var (
+	syntaxError           *json.SyntaxError
+	unmarshalTypeError    *json.UnmarshalTypeError
+	invalidUnmarshalError *json.InvalidUnmarshalError
+	maxBytesError         *http.MaxBytesError
+)
+
 func ReadJSON(w http.ResponseWriter, r *http.Request, dst any) error {
 	maxBytes := 1_048_576
 	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
@@ -18,10 +25,6 @@ func ReadJSON(w http.ResponseWriter, r *http.Request, dst any) error {
 
 	err := dec.Decode(dst)
 	if err != nil {
-		var syntaxError *json.SyntaxError
-		var unmarshalTypeError *json.UnmarshalTypeError
-		var invalidUnmarshalError *json.InvalidUnmarshalError
-		var maxBytesError *http.MaxBytesError
 
 		switch {
 		case errors.As(err, &syntaxError):

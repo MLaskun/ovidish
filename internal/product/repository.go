@@ -19,6 +19,10 @@ type ProductRepository struct {
 	DB *sql.DB
 }
 
+func NewProductRepository() ProductRepository {
+	return ProductRepository{}
+}
+
 func (pr ProductRepository) Insert(product *model.Product) error {
 	query := `
         INSERT INTO products (name, description, categories, quantity, price)

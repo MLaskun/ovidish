@@ -6,8 +6,10 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-func routes(pr ProductRepository) http.Handler {
+func (handler *ProductHandler) routes() http.Handler {
 	router := httprouter.New()
 
+	router.HandlerFunc(http.MethodPost, "/v1/product",
+		handler.createProductHandler)
 	return router
 }

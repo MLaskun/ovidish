@@ -7,8 +7,16 @@ import (
 	"github.com/MLaskun/ovidish/internal/product/model"
 )
 
-func createProductHandler(w http.ResponseWriter, r *http.Request,
-	pr ProductRepository) {
+type ProductHandler struct {
+	Repo ProductRepository
+}
+
+func NewProductHandler(repo ProductRepository) *ProductHandler {
+	return &ProductHandler{Repo: repo}
+}
+
+func (h ProductHandler) createProductHandler(w http.ResponseWriter,
+	r *http.Request) {
 	var input struct {
 		Name        string   `json:"name"`
 		Description string   `json:"description"`
@@ -16,6 +24,7 @@ func createProductHandler(w http.ResponseWriter, r *http.Request,
 		Quantity    int32    `json:"quantity"`
 		Price       float64  `json:"price"`
 	}
+
 	err := helpers.ReadJSON(w, r, &input)
 	if err != nil {
 		http.Error(w, "bad request", http.StatusBadRequest)
@@ -30,10 +39,9 @@ func createProductHandler(w http.ResponseWriter, r *http.Request,
 		Price:       input.Price,
 	}
 
-	err = pr.Insert(product)
+	err = h.Repo.Insert(product)
 	if err != nil {
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
-
 }
