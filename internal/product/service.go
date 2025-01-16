@@ -12,19 +12,53 @@ type ProductService struct {
 
 func NewProductService(repo *ProductRepository) *ProductService {
 	return &ProductService{
-		repo: repo}
+		repo: repo,
+	}
 }
 
 func (s *ProductService) GetById(id int64) (*model.Product, error) {
-	return s.repo.Get(id)
+	productModel, err := s.repo.Get(id)
+	if err != nil {
+		return nil, err
+	}
+	product := mapFromModel(productModel)
+
+	return &product, err
 }
 
 func (s *ProductService) Create(product *model.Product) error {
-	err := s.repo.Insert(product)
+	productModel := mapToModel(product)
+
+	err := s.repo.Insert(productModel)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("product created")
+	fmt.Printf("product created")
+
 	return nil
+}
+
+func mapToModel(product *model.Product) ProductModel {
+	return ProductModel{
+		ID:          product.ID,
+		Name:        product.Name,
+		Description: product.Description,
+		Categories:  product.Categories,
+		Quantity:    product.Quantity,
+		Price:       product.Price,
+		Version:     product.Version,
+	}
+}
+
+func mapFromModel(productModel *ProductModel) model.Product {
+	return model.Product{
+		ID:          productModel.ID,
+		Name:        productModel.Name,
+		Description: productModel.Description,
+		Categories:  productModel.Categories,
+		Quantity:    productModel.Quantity,
+		Price:       productModel.Price,
+		Version:     productModel.Version,
+	}
 }

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/MLaskun/ovidish/internal/product/config"
-	"github.com/MLaskun/ovidish/internal/product/model"
 	"github.com/lib/pq"
 )
 
@@ -20,11 +19,21 @@ type ProductRepository struct {
 	DB *sql.DB
 }
 
+type ProductModel struct {
+	ID          int64    `json:"id"`
+	Name        string   `json:"name"`
+	Description string   `json:"description"`
+	Categories  []string `json:"categories"`
+	Quantity    int32    `json:"quantity"`
+	Price       float64  `json:"price"`
+	Version     int32    `json:"version"`
+}
+
 func NewProductRepository(cfg *config.Config, db *sql.DB) *ProductRepository {
 	return &ProductRepository{DB: db}
 }
 
-func (pr *ProductRepository) Insert(product *model.Product) error {
+func (pr *ProductRepository) Insert(product ProductModel) error {
 	query := `
         INSERT INTO products (name, description, categories, quantity, price)
         VALUES ($1, $2, $3, $4, $5)
@@ -40,7 +49,7 @@ func (pr *ProductRepository) Insert(product *model.Product) error {
 		Scan(&product.ID, &product.Version)
 }
 
-func (pr *ProductRepository) Get(id int64) (*model.Product, error) {
+func (pr *ProductRepository) Get(id int64) (*ProductModel, error) {
 	if id < 1 {
 		return nil, ErrNoRecordFound
 	}
@@ -50,7 +59,7 @@ func (pr *ProductRepository) Get(id int64) (*model.Product, error) {
         FROM products
         WHERE id = $1`
 
-	var product model.Product
+	var product ProductModel
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -77,7 +86,7 @@ func (pr *ProductRepository) Get(id int64) (*model.Product, error) {
 	return &product, nil
 }
 
-func (pr *ProductRepository) Update(product *model.Product) error {
+func (pr *ProductRepository) Update(product ProductModel) error {
 	query := `
         UPDATE products
         SET name = $1, description = $2, categories = $3,
@@ -141,7 +150,7 @@ func (pr *ProductRepository) Delete(id int64) error {
 }
 
 func (pr *ProductRepository) GetAll(name string,
-	categories []string) ([]*model.Product, error) {
+	categories []string) ([]*ProductModel, error) {
 	query := `
         SELECT id, name, description, categories, quantity, price, version
         FROM products
@@ -162,10 +171,10 @@ func (pr *ProductRepository) GetAll(name string,
 	defer rows.Close()
 
 	totalRecords := 0
-	products := []*model.Product{}
+	products := []*ProductModel{}
 
 	for rows.Next() {
-		var product model.Product
+		var product ProductModel
 		err := rows.Scan(
 			&totalRecords,
 			&product.ID,

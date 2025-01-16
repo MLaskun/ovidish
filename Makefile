@@ -1,3 +1,5 @@
+include .env
+
 ## help: you are here
 .PHONY: help
 help:
@@ -11,6 +13,11 @@ tidy:
 	go fmt ./...
 	@echo 'Tidying module dependencies'
 	go mod tidy
+
+## run/product: run product service locally
+.PHONY: run/product
+run/product:
+	go run ./cmd/product
 
 ## db/migrations/new name=$1: create new database migration
 .PHONY: db/migrations/new
