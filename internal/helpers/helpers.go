@@ -6,7 +6,11 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
+	"strconv"
 	"strings"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 var (
@@ -17,6 +21,17 @@ var (
 )
 
 type Envelope map[string]any
+
+func ReadIDParam(r *http.Request) (int64, error) {
+	params := httprouter.ParamsFromContext(r.Context())
+
+	id, err := strconv.ParseInt(params.ByName("id"), 10, 64)
+	if err != nil || id < 1 {
+		return 0, errors.New("invalid id parameter")
+	}
+
+	return id, nil
+}
 
 func ReadJSON(w http.ResponseWriter, r *http.Request, dst any) error {
 	maxBytes := 1_048_576
@@ -77,4 +92,22 @@ func WriteJSON(w http.ResponseWriter, status int, data Envelope) error {
 	w.Write(json)
 
 	return nil
+}
+
+func ReadString(qs url.Values, key, defaultValue string) string {
+	s := qs.Get(key)
+	if s == "" {
+		return defaultValue
+	}
+
+	return s
+}
+
+func ReadCSV(qs url.Values, key string, defaultValue []string) []string {
+	csv := qs.Get(key)
+	if csv == "" {
+		return defaultValue
+	}
+
+	return strings.Split(csv, ",")
 }

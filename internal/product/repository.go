@@ -60,7 +60,7 @@ func (pr *ProductRepository) Get(id int64) (*ProductModel, error) {
 	}
 
 	query := `
-        SELECT id, name, description, quantity, price, version
+        SELECT id, name, description, categories, quantity, price, version
         FROM products
         WHERE id = $1`
 
@@ -91,12 +91,13 @@ func (pr *ProductRepository) Get(id int64) (*ProductModel, error) {
 	return &product, nil
 }
 
-func (pr *ProductRepository) Update(product ProductModel) error {
+func (pr *ProductRepository) Update(product *ProductModel) error {
 	query := `
         UPDATE products
         SET name = $1, description = $2, categories = $3,
         quantity = $4, price = $5, version = version + 1
-        WHERE id = $6 AND version = $7`
+        WHERE id = $6 AND version = $7
+        RETURNING version`
 
 	args := []any{
 		product.Name,
@@ -160,7 +161,7 @@ func (pr *ProductRepository) GetAll(name string,
         SELECT id, name, description, categories, quantity, price, version
         FROM products
         WHERE (name ILIKE '%' || $1 || '%' OR $1 = '')
-        AND (categories @> $2 OR $2 = '{}'
+        AND (categories @> $2 OR $2 = '{}')
         ORDER BY id`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -175,13 +176,11 @@ func (pr *ProductRepository) GetAll(name string,
 
 	defer rows.Close()
 
-	totalRecords := 0
 	products := []*ProductModel{}
 
 	for rows.Next() {
 		var product ProductModel
 		err := rows.Scan(
-			&totalRecords,
 			&product.ID,
 			&product.Name,
 			&product.Description,

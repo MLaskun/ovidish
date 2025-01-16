@@ -51,3 +51,8 @@ func MethodNotAllowedResponse(w http.ResponseWriter, r *http.Request) {
 	message := fmt.Sprintf("method %s is not allowed here", r.Method)
 	ErrorResponse(w, r, http.StatusMethodNotAllowed, message)
 }
+
+func EditConflictResponse(w http.ResponseWriter, r *http.Request) {
+	message := "unable to update record"
+	ErrorResponse(w, r, http.StatusConflict, message)
+}

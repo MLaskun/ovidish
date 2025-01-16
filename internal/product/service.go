@@ -1,8 +1,6 @@
 package product
 
 import (
-	"fmt"
-
 	"github.com/MLaskun/ovidish/internal/product/model"
 )
 
@@ -26,6 +24,21 @@ func (s *ProductService) GetById(id int64) (*model.Product, error) {
 	return product, err
 }
 
+func (s *ProductService) GetAll(name string,
+	categories []string) ([]*model.Product, error) {
+	productModelList, err := s.repo.GetAll(name, categories)
+	if err != nil {
+		return nil, err
+	}
+
+	products := make([]*model.Product, len(productModelList))
+	for i, productModel := range productModelList {
+		products[i] = mapFromModel(productModel)
+	}
+
+	return products, nil
+}
+
 func (s *ProductService) Create(product *model.Product) error {
 	productModel := mapToModel(product)
 
@@ -34,9 +47,30 @@ func (s *ProductService) Create(product *model.Product) error {
 		return err
 	}
 
-	fmt.Printf("product created: %v", productModel.ID)
 	product.ID = productModel.ID
 	product.Version = productModel.Version
+
+	return nil
+}
+
+func (s *ProductService) Update(product *model.Product) error {
+	productModel := mapToModel(product)
+
+	err := s.repo.Update(productModel)
+	if err != nil {
+		return err
+	}
+
+	product.Version = productModel.Version
+
+	return nil
+}
+
+func (s *ProductService) Delete(id int64) error {
+	err := s.repo.Delete(id)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
