@@ -3,9 +3,11 @@ package product
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 
@@ -15,6 +17,7 @@ import (
 
 type Server struct {
 	cfg *config.Config
+	wg  sync.WaitGroup
 }
 
 func NewServer(cfg *config.Config) *Server {
@@ -26,7 +29,7 @@ func NewServer(cfg *config.Config) *Server {
 func (s *Server) Run() error {
 	db, err := database.Init(*s.cfg)
 	if err != nil {
-		fmt.Errorf(err.Error())
+		slog.Error(err.Error())
 		os.Exit(1)
 	}
 	defer db.Close()
@@ -53,22 +56,26 @@ func (s *Server) Run() error {
 
 	go func() {
 		sig := <-quit
-		fmt.Println("Shutting down server gracefully...",
+		slog.Info("Shutting down server gracefully...",
 			"signal", sig.String())
 
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 
 		if err := httpServer.Shutdown(ctx); err != nil {
-			shutdownError <- fmt.Errorf("server shutdown error: %w", err)
+			shutdownError <- err
 			return
 		}
 
-		fmt.Println("server gracefully stopped")
+		slog.Info("waiting on completion background tasks",
+			"addr", httpServer.Addr)
+
+		s.wg.Wait()
 		shutdownError <- nil
 	}()
 
-	fmt.Println("starting server on port", httpServer.Addr)
+	slog.Info("starting server on port", "addr", httpServer.Addr)
+
 	err = httpServer.ListenAndServe()
 	if err != nil && err != http.ErrServerClosed {
 		return fmt.Errorf("server error: %w", err)
@@ -77,6 +84,8 @@ func (s *Server) Run() error {
 	if err := <-shutdownError; err != nil {
 		return err
 	}
+
+	slog.Info("server stopped", "addr", httpServer.Addr)
 
 	return nil
 }

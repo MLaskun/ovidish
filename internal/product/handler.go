@@ -5,6 +5,7 @@ import (
 
 	"github.com/MLaskun/ovidish/internal/helpers"
 	"github.com/MLaskun/ovidish/internal/product/model"
+	"github.com/MLaskun/ovidish/internal/validator"
 )
 
 type ProductHandler struct {
@@ -39,9 +40,22 @@ func (h ProductHandler) createProductHandler(w http.ResponseWriter,
 		Price:       input.Price,
 	}
 
+	v := validator.New()
+
+	if model.ValidateProduct(v, product); !v.Valid() {
+		helpers.FailedValidationResponse(w, r, v.Errors)
+		return
+	}
+
 	err = h.svc.Create(product)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		helpers.ServerErrorResponse(w, r, err)
 		return
+	}
+
+	err = helpers.WriteJSON(w, http.StatusCreated,
+		helpers.Envelope{"product": product})
+	if err != nil {
+		helpers.ServerErrorResponse(w, r, err)
 	}
 }

@@ -16,6 +16,8 @@ var (
 	maxBytesError         *http.MaxBytesError
 )
 
+type Envelope map[string]any
+
 func ReadJSON(w http.ResponseWriter, r *http.Request, dst any) error {
 	maxBytes := 1_048_576
 	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
@@ -58,6 +60,21 @@ func ReadJSON(w http.ResponseWriter, r *http.Request, dst any) error {
 	if !errors.Is(err, io.EOF) {
 		return errors.New("body must only contain s single JSON value")
 	}
+
+	return nil
+}
+
+func WriteJSON(w http.ResponseWriter, status int, data Envelope) error {
+	json, err := json.MarshalIndent(data, "", "\t")
+	if err != nil {
+		return err
+	}
+
+	json = append(json, '\n')
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	w.Write(json)
 
 	return nil
 }
