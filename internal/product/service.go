@@ -23,7 +23,7 @@ func (s *ProductService) GetById(id int64) (*model.Product, error) {
 	}
 	product := mapFromModel(productModel)
 
-	return &product, err
+	return product, err
 }
 
 func (s *ProductService) Create(product *model.Product) error {
@@ -34,13 +34,15 @@ func (s *ProductService) Create(product *model.Product) error {
 		return err
 	}
 
-	fmt.Printf("product created")
+	fmt.Printf("product created: %v", productModel.ID)
+	product.ID = productModel.ID
+	product.Version = productModel.Version
 
 	return nil
 }
 
-func mapToModel(product *model.Product) ProductModel {
-	return ProductModel{
+func mapToModel(product *model.Product) *ProductModel {
+	return &ProductModel{
 		ID:          product.ID,
 		Name:        product.Name,
 		Description: product.Description,
@@ -51,8 +53,8 @@ func mapToModel(product *model.Product) ProductModel {
 	}
 }
 
-func mapFromModel(productModel *ProductModel) model.Product {
-	return model.Product{
+func mapFromModel(productModel *ProductModel) *model.Product {
+	return &model.Product{
 		ID:          productModel.ID,
 		Name:        productModel.Name,
 		Description: productModel.Description,

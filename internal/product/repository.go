@@ -33,14 +33,19 @@ func NewProductRepository(cfg *config.Config, db *sql.DB) *ProductRepository {
 	return &ProductRepository{DB: db}
 }
 
-func (pr *ProductRepository) Insert(product ProductModel) error {
+func (pr *ProductRepository) Insert(product *ProductModel) error {
 	query := `
         INSERT INTO products (name, description, categories, quantity, price)
         VALUES ($1, $2, $3, $4, $5)
         RETURNING id, version`
 
-	args := []any{product.Name, product.Description,
-		pq.Array(product.Categories), product.Quantity, product.Price}
+	args := []any{
+		product.Name,
+		product.Description,
+		pq.Array(product.Categories),
+		product.Quantity,
+		product.Price,
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
