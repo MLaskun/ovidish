@@ -10,6 +10,7 @@ import (
 
 const (
 	databaseDsnEnv = "DATABASE_DSN"
+	addressEnv     = "PRODUCT_ADDRESS"
 )
 
 func main() {
@@ -24,12 +25,7 @@ func main() {
 }
 
 func makeConfig() (*config.Config, error) {
-	cfg := &config.Config{
-		Address: ":3000",
-		Database: config.Database{
-			Dsn: "postgres://postgres:postgres@localhost:5432/ovidish?sslmode=disable",
-		},
-	}
+	cfg := &config.Config{}
 
 	if err := unmarshalConfigFromEnv(cfg); err != nil {
 		return nil, fmt.Errorf("config creation failed: %w", err)
@@ -44,6 +40,12 @@ func unmarshalConfigFromEnv(cfg *config.Config) error {
 		return fmt.Errorf("missing variable: %s", databaseDsnEnv)
 	}
 	cfg.Database.Dsn = str
+
+	str = os.Getenv(addressEnv)
+	if len(str) == 0 {
+		return fmt.Errorf("missing variable: %s", addressEnv)
+	}
+	cfg.Address = str
 
 	return nil
 }
