@@ -171,6 +171,8 @@ func (h ProductHandler) updateProductHandler(w http.ResponseWriter,
 		switch {
 		case errors.Is(err, ErrEditConflict):
 			helpers.EditConflictResponse(w, r)
+        default:
+            helpers.ServerErrorResponse(w, r, err)
 		}
 	}
 

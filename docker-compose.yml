@@ -5,7 +5,7 @@ services:
       - "8080:8080"
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: ./internal/product/Dockerfile
     environment:
       PRODUCT_ADDRESS: ":8080"
       DATABASE_DSN: "postgres://postgres:postgres@postgres_db:5432/ovidish?sslmode=disable"
