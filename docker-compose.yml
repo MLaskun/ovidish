@@ -1,0 +1,43 @@
+services:
+  product_service:
+    container_name: "product_service"
+    ports:
+      - "8080:8080"
+    build:
+      context: .
+      dockerfile: ./internal/product/Dockerfile
+    environment:
+      PRODUCT_ADDRESS: ":8080"
+      DATABASE_DSN: "postgres://postgres:postgres@postgres_db:5432/ovidish?sslmode=disable"
+    volumes:
+      - product:/var/data
+    restart: unless-stopped
+    networks:
+      - product
+    depends_on:
+      - "postgres_db"
+    links:
+     - postgres_db
+
+  postgres_db:
+    image: postgres
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ovidish
+    ports:
+      - "5432:5432"
+    networks:
+      - product
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+networks:
+  product:
+    driver: bridge
+
+volumes:
+  product:
+  pgdata:
